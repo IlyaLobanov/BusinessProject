@@ -17,7 +17,6 @@ def optimize_portfolio(returns, current_weights, big_tokens=["BTC", "ETH"], cash
         cp.sum(w) == 1,
         w >= 0
     ]
-    
 
     for token, weight in current_weights.items():
         index = list(returns.columns).index(token)
@@ -38,7 +37,6 @@ def optimize_portfolio(returns, current_weights, big_tokens=["BTC", "ETH"], cash
     return dict(zip(returns.columns, w.value))
 
 
-
 def compute_returns(data, start_day=0, days=7):
     all_returns = {}
 
@@ -53,8 +51,8 @@ def compute_returns(data, start_day=0, days=7):
 def next_day_update(data, current_day_index):
     
     next_day_returns = compute_returns(data, start_day=current_day_index, days=1)
-    
-    
+
+
     current_weights = optimize_portfolio(next_day_returns)
     
     

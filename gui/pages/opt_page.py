@@ -5,6 +5,8 @@ from static import STATIC_PATH
 import json
 
 
+
+
 class Candle():
 
     def __init__(self, arr: list):
@@ -30,9 +32,9 @@ def make_candle(arr: list):
 st.title("Portfolio Optimization")
 
 
-btc_alloc = st.slider("BTC Allocation (%)", 0, 100, 50) / 100
-eth_alloc = st.slider("ETH Allocation (%)", 0, 100-btc_alloc*100, 25) / 100
-alt_alloc = 1 - btc_alloc - eth_alloc
+btc_eth_alloc = st.slider("BTC&ETH Allocation (%)", 0, 100, 50)
+altcoin_alloc = st.slider("Altcoin Allocation (%)", 0, 100-btc_eth_alloc*100, 25)
+stable_alloc = 100 - btc_eth_alloc - altcoin_alloc
 
 current_day = 7 * 24
 
