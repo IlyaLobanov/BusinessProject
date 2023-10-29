@@ -1,9 +1,10 @@
+import pandas as pd
 import streamlit as st
 from helpers.utils import init_page
-from helpers.optimization import next_day_update
+from helpers.optimization import update_portfolio, portfolio_cost, draw_pie_chart, draw_line_chart
 from static import STATIC_PATH
 import json
-
+import plotly.express as px
 
 
 
@@ -32,15 +33,38 @@ def make_candle(arr: list):
 st.title("Portfolio Optimization")
 
 
-btc_eth_alloc = st.slider("BTC&ETH Allocation (%)", 0, 100, 50)
-altcoin_alloc = st.slider("Altcoin Allocation (%)", 0, 100-btc_eth_alloc*100, 25)
+btc_eth_alloc = st.slider("BTC&ETH Allocation (%)", 0, 99, 0)
+altcoin_alloc = st.slider("Altcoin Allocation (%)", 0, 100-btc_eth_alloc, 0)
 stable_alloc = 100 - btc_eth_alloc - altcoin_alloc
 
-current_day = 7 * 24
+st.write(f'Allocation for stablecoins is: {stable_alloc}%')
+
+
+initial_balance = 100000
+current_balance = 100000
+
+balance_history = []
+
+st.write(f'Initial Balance: {initial_balance}$')
+
+c1, c2 = st.columns(2)
+
+if 'wights' not in st.session_state:
+    st.session_state.weights = None
+
+if 'amounts' not in st.session_state:
+    st.session_state.amounts = None
+
+if 'balance_history' not in st.session_state:
+    st.session_state.balance_history = []
+
+if 'current_day' not in st.session_state:
+    st.session_state.current_day = 10 * 24
+
 
 def dict_to_candle(candle_dict):
-    return Candle([candle_dict["start_time"], candle_dict["open_price"], candle_dict["max_price"], 
-                   candle_dict["min_price"], candle_dict["close_price"], candle_dict["token_volume"], 
+    return Candle([candle_dict["start_time"], candle_dict["open_price"], candle_dict["max_price"],
+                   candle_dict["min_price"], candle_dict["close_price"], candle_dict["token_volume"],
                    candle_dict["end_time"], candle_dict["quote_volume"], candle_dict["trades_amount"]])
 
 with open(STATIC_PATH / 'full_data.json') as file:
@@ -49,11 +73,38 @@ with open(STATIC_PATH / 'full_data.json') as file:
 
 
 if st.button('Перейти к следующему дню'):
-    updated_weights = next_day_update(all_data, current_day)
-    
-    
-    
-    current_day += 24
+
+    if st.session_state.amounts is not None:
+        current_balance = portfolio_cost(all_data, st.session_state.current_day, st.session_state.amounts)
+    st.session_state.balance_history.append(current_balance)
+
+    st.session_state.weights, st.session_state.amounts = update_portfolio(all_data, st.session_state.current_day, btc_eth_alloc, altcoin_alloc, stable_alloc,current_balance)
+
+    with c1:
+        st.write(f'Current balance: {current_balance}')
+
+    with c1:
+        sorted_amounts = dict(sorted(st.session_state.amounts.items(), key=lambda item: item[1], reverse=True))
+        tokens = sorted_amounts.keys()
+        token_amounts = sorted_amounts.values()
+
+        local_df = pd.DataFrame(data={'Amount $': token_amounts}, index=tokens)
+
+        st.dataframe(local_df.head(10))
+
+    with c2:
+        fig = px.pie(values = list(st.session_state.weights.values()), names=list(st.session_state.weights.keys()), title='Portfolio Distribution')
+
+        st.plotly_chart(fig)
+
+    balance_df = pd.DataFrame(st.session_state.balance_history)
+    st.line_chart(balance_df)
+
+    st.session_state.current_day += 1
+
+
+
+
 
 
 
