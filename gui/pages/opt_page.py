@@ -5,6 +5,8 @@ from helpers.optimization import update_portfolio, portfolio_cost, draw_pie_char
 from static import STATIC_PATH
 import json
 import plotly.express as px
+import plotly.graph_objects as go
+
 
 
 
@@ -59,7 +61,7 @@ if 'balance_history' not in st.session_state:
     st.session_state.balance_history = []
 
 if 'current_day' not in st.session_state:
-    st.session_state.current_day = 10 * 24
+    st.session_state.current_day = 12 * 24
 
 
 def dict_to_candle(candle_dict):
@@ -88,12 +90,21 @@ if st.button('Перейти к следующему дню'):
         tokens = sorted_amounts.keys()
         token_amounts = sorted_amounts.values()
 
-        local_df = pd.DataFrame(data={'Amount $': token_amounts}, index=tokens)
+        local_df = pd.DataFrame(data={'Amount of tokens': token_amounts}, index=tokens)
 
         st.dataframe(local_df.head(10))
 
     with c2:
-        fig = px.pie(values = list(st.session_state.weights.values()), names=list(st.session_state.weights.keys()), title='Portfolio Distribution')
+        threshold = 0.001
+        labels = st.session_state.weights.keys()
+        values = st.session_state.weights.values()
+        labels_new = [label for label, value in zip(labels, values) if value >= threshold]
+        values_new = [value for value in values if value >= threshold]
+
+        labels_new.append("Другие")
+        values_new.append(sum(value for value in values if value < threshold))
+
+        fig = go.Figure(data=[go.Pie(labels=labels_new, values=values_new, title='Portfolio Distribution')])
 
         st.plotly_chart(fig)
 

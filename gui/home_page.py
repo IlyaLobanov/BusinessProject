@@ -39,8 +39,8 @@ filtered_tokens = [token for token in tokens if search_term.lower() in token.low
 selected_token = st.selectbox("Select a token:", filtered_tokens)
 
 
-start_date = st.date_input("Start date")
-end_date = st.date_input("End date")
+start_date = st.date_input("Start date",value = pd.to_datetime('2023-04-01'), min_value=pd.to_datetime('2023-04-01'), max_value=pd.to_datetime('2023-10-30'))
+end_date = st.date_input("End date",value = pd.to_datetime('2023-04-10'), min_value=pd.to_datetime('2023-04-01'), max_value=pd.to_datetime('2023-10-30'))
 
 
 filtered_data = [candle for candle in data_dict[selected_token] if start_date <= pd.to_datetime(candle.start_time, unit='ms').date() <= end_date]

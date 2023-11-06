@@ -8,14 +8,15 @@ import streamlit as st
 def optimize_portfolio(all_data, returns, big_weight, alt_weight, cash_weight, current_day_index, current_balance, big_tokens=["BTC", "ETH"],
                        cash_tokens=["USDC"]):
 
-    n = returns.shape[1]
-    mu = returns.mean().values
-    Sigma = returns.cov().values
 
     btc_index = list(returns.columns).index('BTCUSDT')
     eth_index = list(returns.columns).index('ETHUSDT')
 
     stable_index = list(returns.columns).index('USDCUSDT')
+
+    n = returns.shape[1]
+    mu = returns.mean().values
+    Sigma = returns.cov().values
 
     w = cp.Variable(n)
     gamma = cp.Parameter(nonneg=True)
@@ -28,7 +29,7 @@ def optimize_portfolio(all_data, returns, big_weight, alt_weight, cash_weight, c
 
     big_total = cp.sum(w[[btc_index, eth_index]])
     cash_total = cp.sum(w[stable_index])
-    #
+
     constraints.extend([
         big_total == big_weight / 100,
         cash_total == cash_weight / 100
